@@ -12,7 +12,6 @@ fun addRepos(handler: RepositoryHandler) {
     }
     handler.mavenCentral()
 
-
 }
 
 object App {
@@ -24,25 +23,10 @@ object App {
     const val targetSdk = 29
 }
 
-object Helper {
-    const val versionCode = 10000
-    const val versionName = "1.0.0"
-}
-
-object Widget {
-    const val versionCode = 10000
-    const val versionName = "1.0.0"
-}
-
 object ClassPath {
     const val android_gradle = "com.android.tools.build:gradle:4.0.0"
     const val kotlin_gradle = "org.jetbrains.kotlin:kotlin-gradle-plugin:${Versions.kotlin}"
     const val dokka = "org.jetbrains.dokka:dokka-android-gradle-plugin:0.9.18"
-}
-
-class Lib {
-    val bannerView = Libs.bannerView.toString()
-    val logHelper = Libs.logHelper.toString()
 }
 
 object Deps {
@@ -51,7 +35,6 @@ object Deps {
     val gson = "com.google.code.gson:gson:2.8.6"
     val junit = "junit:junit:4.12"
     val kotlin = Kotlin()
-    val lib = Lib()
     val leakCanary = "com.squareup.leakcanary:leakcanary-android:2.2"
     val material = "com.google.android.material:material:1.1.0"
 
