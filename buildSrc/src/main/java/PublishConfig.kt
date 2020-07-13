@@ -12,4 +12,5 @@ object PluginsVersion {
     const val imageConvert = "1.0.0-beta01"
     const val component = "1.0.0-beta01"
     const val depDeduplicate = "1.0.0-alpha23"
+    const val autoRegister = "1.0.0-alpha01"
 }
