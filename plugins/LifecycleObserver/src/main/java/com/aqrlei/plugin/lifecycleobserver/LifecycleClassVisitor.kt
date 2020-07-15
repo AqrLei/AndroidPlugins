@@ -7,7 +7,7 @@ import org.objectweb.asm.Opcodes
 /**
  * created by AqrLei on 2020/7/14
  */
-class LifecycleClassVisitor(cv:ClassVisitor) : ClassVisitor(Opcodes.ASM7,cv), Opcodes {
+class LifecycleClassVisitor(cv: ClassVisitor) : ClassVisitor(Opcodes.ASM7, cv), Opcodes {
     private lateinit var clazzName: String
 
     override fun visit(
@@ -30,13 +30,14 @@ class LifecycleClassVisitor(cv:ClassVisitor) : ClassVisitor(Opcodes.ASM7,cv), Op
         exceptions: Array<out String>?
     ): MethodVisitor {
         val mv = cv.visitMethod(access, name, descriptor, signature, exceptions)
-        if ("androidx/fragment/app/FragmentActivity" == clazzName) {
-            if ("onCreate" == name) {
+        VisitHelper.dispatchMethodVisit(clazzName, name,
+            callbackOnCreate = {
                 return LifecycleOnCreateMethodVisitor(mv)
-            } else if ("onDestroy" == name) {
+
+            },
+            callbackOnDestroy = {
                 return LifecycleOnDestroyMethodVisitor(mv)
-            }
-        }
+            })
         return super.visitMethod(access, name, descriptor, signature, exceptions)
     }
 }

@@ -1,18 +1,11 @@
 package com.aqrlei.plugin.lifecycleobserver
 
 import com.android.build.api.transform.*
+import com.android.build.gradle.AppExtension
 import com.android.build.gradle.internal.pipeline.TransformManager
 import com.android.utils.FileUtils
 import org.apache.commons.codec.digest.DigestUtils
-import org.apache.commons.io.IOUtils
 import org.gradle.api.Project
-import org.objectweb.asm.ClassReader
-import org.objectweb.asm.ClassWriter
-import java.io.File
-import java.io.FileOutputStream
-import java.util.jar.JarFile
-import java.util.jar.JarOutputStream
-import java.util.zip.ZipEntry
 
 /**
  * created by AqrLei on 2020/7/10
@@ -66,103 +59,20 @@ class LifecycleTransform(private val project: Project) : Transform() {
         if (jarName.endsWith(".jar")) {
             jarName = jarName.substring(0, jarName.length - 4)
         }
-
-        val jarFile = JarFile(jarInput.file)
-        val enumeration = jarFile.entries()
-        val tmpFile = File("${jarInput.file.parent}${File.separator}classes_temp.jar")
-
-        if (tmpFile.exists()) {
-            tmpFile.delete()
-        }
-        JarOutputStream(FileOutputStream(tmpFile)).use {
-            while (enumeration.hasMoreElements()) {
-                val jarEntry = enumeration.nextElement()
-                val entryName = jarEntry.name
-                val zipEntry = ZipEntry(entryName)
-                val inputStream = jarFile.getInputStream(jarEntry)
-                if (checkClassFile(entryName)) {
-                    log("----- deal with 'jar' class file < $entryName > -----")
-                    it.putNextEntry(zipEntry)
-                    val classReader = ClassReader(IOUtils.toByteArray(inputStream))
-                    val classWriter = ClassWriter(classReader, ClassWriter.COMPUTE_MAXS)
-                    val cv = LifecycleClassVisitor(classWriter)
-                    classReader.accept(cv, ClassReader.EXPAND_FRAMES)
-                    val code = classWriter.toByteArray()
-                    it.write(code)
-                } else {
-                    it.putNextEntry(zipEntry)
-                    it.write(IOUtils.toByteArray(inputStream))
-                }
-            }
-            it.closeEntry()
-        }
-        jarFile.close()
-
         val dest = outputProvider.getContentLocation(
             "${jarName}_${md5Name}",
             jarInput.contentTypes,
             jarInput.scopes,
             Format.JAR
         )
-
-        FileUtils.copyFile(tmpFile, dest)
-        tmpFile.delete()
+        FileUtils.copyFile(jarInput.file, dest)
     }
 
     private fun processDirectoryInputs(
         dirInput: DirectoryInput,
         outputProvider: TransformOutputProvider
     ) {
-        if (dirInput.file.isDirectory) {
-            eachFileRecurse(dirInput.file) {
-                val name = it.name
-                if (checkClassFile(name)) {
-                    log("----- deal with 'class' file < '$name' > -----")
-                    val classReader = ClassReader(it.readBytes())
-                    val classWriter = ClassWriter(classReader, ClassWriter.COMPUTE_MAXS)
-                    val cv = LifecycleClassVisitor(classWriter)
-                    classReader.accept(cv, ClassReader.EXPAND_FRAMES)
-                    val code = classWriter.toByteArray()
-                    FileOutputStream("${it.parentFile.absolutePath}${File.separator}$name").use { fos ->
-                        fos.write(code)
-                    }
-
-                }
-            }
-        }
-
-        val dest = outputProvider.getContentLocation(
-            dirInput.name,
-            dirInput.contentTypes,
-            dirInput.scopes,
-            Format.DIRECTORY
-        )
-
-        FileUtils.copyDirectory(dirInput.file, dest)
+        val android = project.extensions.getByType(AppExtension::class.java)
+        LifecycleAssist.processDirectoryInputs(dirInput, android, outputProvider)
     }
-
-
-    private fun eachFileRecurse(self: File, callback: (File) -> Unit) {
-        val files = self.listFiles()
-        val var5 = files.size
-        for (var6 in 0 until var5) {
-            val file = files[var6]
-            if (file.isDirectory) {
-                eachFileRecurse(file, callback)
-            } else if (file != null) {
-                callback(file)
-            }
-        }
-    }
-
-    private fun checkClassFile(name: String): Boolean {
-        return (name.endsWith(".class") && !name.startsWith("R\$")
-                && "R.class" != name && "BuildConfig.class" != name
-                && ("android/app/Activity.class" == name))
-    }
-
-    private fun log(msg: String) {
-        println("LifecyclePlugin : $msg")
-    }
-
 }

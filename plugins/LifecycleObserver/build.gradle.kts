@@ -5,6 +5,7 @@ plugins {
 
 dependencies {
     compileOnly("com.android.tools.build:gradle:4.0.0")
+    implementation("org.javassist:javassist:3.27.0-GA")
 }
 repositories {
     jcenter()
