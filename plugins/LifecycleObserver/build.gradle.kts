@@ -12,13 +12,13 @@ repositories {
     mavenCentral()
 }
 group = PublishConfig.pluginGroupId
-version = PluginsVersion.autoRegister
+version = PluginsVersion.lifecycle
 
 gradlePlugin {
     plugins {
         create("AutoRegister") {
-            id = "com.aqrlei.plugin.autoregister"
-            implementationClass = "com.aqrlei.plugin.autoregister.RegisterPlugin"
+            id = "com.aqrlei.plugin.lifecycleobserver"
+            implementationClass = "com.aqrlei.plugin.lifecycleobserver.LifecyclePlugin"
         }
     }
 }

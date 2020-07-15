@@ -1,7 +1,7 @@
 
 include(":app")
 
-includeModules(arrayOf("ImageConvert","Component","DepDeduplicate","AutoRegister"),"plugins")
+includeModules(arrayOf("ImageConvert","Component","DepDeduplicate","LifecycleObserver"),"plugins")
 
 
 rootProject.buildFileName = "build.gradle.kts"
