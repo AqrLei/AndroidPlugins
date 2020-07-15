@@ -29,7 +29,7 @@ object LifecycleAssist {
             eachFileRecurse(dirInput.file) {
                 val name = it.name
                 if (VisitHelper.checkClassFile(name)) {
-                    val ctClass = classPool.getCtClass("androidx.fragment.app.FragmentActivity")
+                    val ctClass = classPool.getCtClass("com.aqrlei.sample.base.BaseActivity")
                     VisitHelper.log("ctClass = $ctClass")
 
                     if (ctClass.isFrozen) {
