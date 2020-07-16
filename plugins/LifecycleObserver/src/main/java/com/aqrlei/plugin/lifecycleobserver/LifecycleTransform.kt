@@ -74,7 +74,7 @@ class LifecycleTransform(private val project: Project) : Transform() {
         outputProvider: TransformOutputProvider
     ) {
         val android = project.extensions.getByType(AppExtension::class.java)
-        LifecycleAssist.processDirectoryInputs(dirInput.file.absolutePath, android)
+        LifecycleAssist.processInput(dirInput.file.absolutePath, android)
 
         val dest = outputProvider.getContentLocation(
             dirInput.name,

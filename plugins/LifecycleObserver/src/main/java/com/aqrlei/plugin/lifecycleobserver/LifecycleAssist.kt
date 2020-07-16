@@ -12,13 +12,14 @@ import java.io.File
 object LifecycleAssist {
     private val classPool = ClassPool.getDefault()
 
-    fun processDirectoryInputs(
+    fun processInput(
         path: String,
         android: AppExtension
     ) {
         classPool.appendClassPath(path)
         classPool.appendClassPath(android.bootClasspath[0].toString())
         classPool.importPackage("android.os.Bundle")
+        classPool.importPackage("android.os.Message")
         val dir = File(path)
         if (dir.isDirectory) {
             eachFileRecurse(dir) {
