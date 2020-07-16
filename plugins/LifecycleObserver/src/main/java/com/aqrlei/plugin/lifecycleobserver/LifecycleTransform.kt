@@ -36,10 +36,10 @@ class LifecycleTransform(private val project: Project) : Transform() {
     }
 
     override fun transform(invocation: TransformInvocation) {
-        val clearCache = !invocation.isIncremental
-        if (clearCache) {
+        if (!invocation.isIncremental) {
             invocation.outputProvider.deleteAll()
         }
+        VisitHelper.log("Begin of transform")
         invocation.inputs.forEach { input ->
 
             input.jarInputs.forEach { jarInput ->
@@ -50,6 +50,7 @@ class LifecycleTransform(private val project: Project) : Transform() {
                 processDirectoryInputs(dirInput, invocation.outputProvider)
             }
         }
+        VisitHelper.log("End of transform")
     }
 
 
@@ -73,6 +74,15 @@ class LifecycleTransform(private val project: Project) : Transform() {
         outputProvider: TransformOutputProvider
     ) {
         val android = project.extensions.getByType(AppExtension::class.java)
-        LifecycleAssist.processDirectoryInputs(dirInput, android, outputProvider)
+        LifecycleAssist.processDirectoryInputs(dirInput.file.absolutePath, android)
+
+        val dest = outputProvider.getContentLocation(
+            dirInput.name,
+            dirInput.contentTypes,
+            dirInput.scopes,
+            Format.DIRECTORY
+        )
+
+        FileUtils.copyDirectory(dirInput.file, dest)
     }
 }

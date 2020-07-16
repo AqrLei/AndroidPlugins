@@ -1,12 +1,8 @@
 package com.aqrlei.plugin.lifecycleobserver
 
-import com.android.build.api.transform.DirectoryInput
-import com.android.build.api.transform.Format
-import com.android.build.api.transform.TransformOutputProvider
 import com.android.build.gradle.AppExtension
-import com.android.utils.FileUtils
 import javassist.ClassPool
-import javassist.CtClass
+import javassist.CtMethod
 import java.io.File
 
 /**
@@ -17,58 +13,59 @@ object LifecycleAssist {
     private val classPool = ClassPool.getDefault()
 
     fun processDirectoryInputs(
-        dirInput: DirectoryInput,
-        android: AppExtension,
-        outputProvider: TransformOutputProvider
+        path: String,
+        android: AppExtension
     ) {
-        val path = dirInput.file.absolutePath
         classPool.appendClassPath(path)
         classPool.appendClassPath(android.bootClasspath[0].toString())
         classPool.importPackage("android.os.Bundle")
-        if (dirInput.file.isDirectory) {
-            eachFileRecurse(dirInput.file) {
+        val dir = File(path)
+        if (dir.isDirectory) {
+            eachFileRecurse(dir) {
                 val name = it.name
-                if (VisitHelper.checkClassFile(name)) {
-                    val ctClass = classPool.getCtClass("com.aqrlei.sample.base.BaseActivity")
-                    VisitHelper.log("ctClass = $ctClass")
+                VisitHelper.log("className = $name")
+                if (VisitHelper.checkClassFile(name) && name.contains("MainActivity.class")) {
+                    try {
+                        val ctClass = classPool.getCtClass("com.aqrlei.sample.MainActivity")
+                        VisitHelper.log("ctClass = $ctClass")
 
-                    if (ctClass.isFrozen) {
-                        ctClass.defrost()
+                        if (ctClass.isFrozen) {
+                            ctClass.defrost()
+                        }
+                        for (method in ctClass.declaredMethods) {
+
+                            val tempMethodName = method.name
+                            val methodName = tempMethodName.substring(
+                                tempMethodName.lastIndexOf('.') + 1,
+                                tempMethodName.length
+                            )
+                            VisitHelper.log("methodName = $methodName")
+                            if ("onCreate".contains(methodName)) {
+                                insertOnCreate(method)
+                            }
+                            if ("onDestroy".contains(methodName)) {
+                                insertOnDestroy(method)
+                            }
+                        }
+                        ctClass.writeFile(path)
+                        ctClass.detach()
+                    } catch (e: Exception) {
+                        VisitHelper.log("throw Exception : $e")
                     }
-                    insertOnCreate(ctClass)
-                    insertOnDestroy(ctClass)
-
-                    ctClass.writeFile(path)
-                    ctClass.detach()
                 }
             }
         }
-
-        val dest = outputProvider.getContentLocation(
-            dirInput.name,
-            dirInput.contentTypes,
-            dirInput.scopes,
-            Format.DIRECTORY
-        )
-
-        FileUtils.copyDirectory(dirInput.file, dest)
     }
 
-    private fun insertOnCreate(ctClass: CtClass) {
-        val ctMethod = ctClass.getDeclaredMethod("onCreate")
+    private fun insertOnCreate(ctMethod: CtMethod) {
         VisitHelper.log("ctMethod = $ctMethod")
-
-        val insertBefore = """android.util.log.i("LifecyclePlugin", "<----- onCreate ----->");"""
-
+        val insertBefore = """android.util.Log.i("LifecyclePlugin", "<----- onCreate ----->");"""
         ctMethod.insertBefore(insertBefore)
     }
 
-    private fun insertOnDestroy(ctClass: CtClass) {
-        val ctMethod = ctClass.getDeclaredMethod("onDestroy")
+    private fun insertOnDestroy(ctMethod: CtMethod) {
         VisitHelper.log("ctMethod = $ctMethod")
-
-        val insertBefore = """android.util.log.i("LifecyclePlugin", "<----- onDestroy ----->");"""
-
+        val insertBefore = """android.util.Log.i("LifecyclePlugin", "<----- onDestroy ----->");"""
         ctMethod.insertBefore(insertBefore)
     }
 

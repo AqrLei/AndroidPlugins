@@ -5,24 +5,10 @@ package com.aqrlei.plugin.lifecycleobserver
  */
 object VisitHelper {
 
-    inline fun dispatchMethodVisit(
-        clazzName: String,
-        methodName: String?,
-        callbackOnCreate: () -> Unit,
-        callbackOnDestroy: () -> Unit) {
-        if ("androidx/fragment/app/FragmentActivity" == clazzName) {
-            if ("onCreate" == methodName) {
-                callbackOnCreate()
-            } else if ("onDestroy" == methodName) {
-                callbackOnDestroy()
-            }
-        }
-    }
-
     fun checkClassFile(name: String): Boolean {
         return (name.endsWith(".class") && !name.startsWith("R\$")
-                && "R.class" != name && "BuildConfig.class" != name
-                && ("androidx/fragment/app/FragmentActivity.class" == name))
+                && !name.contains("$")
+                && "R.class" != name && "BuildConfig.class" != name)
     }
 
     fun log(msg: String) {
