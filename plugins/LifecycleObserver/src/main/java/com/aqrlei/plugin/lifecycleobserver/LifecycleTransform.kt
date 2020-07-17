@@ -4,6 +4,7 @@ import com.android.build.api.transform.*
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.internal.pipeline.TransformManager
 import com.android.utils.FileUtils
+import javassist.ClassPool
 import org.apache.commons.codec.digest.DigestUtils
 import org.gradle.api.Project
 
@@ -39,6 +40,8 @@ class LifecycleTransform(private val project: Project) : Transform() {
         if (!invocation.isIncremental) {
             invocation.outputProvider.deleteAll()
         }
+        val android = project.extensions.getByType(AppExtension::class.java)
+        LifecycleAssist.appendAndroidClassPath(android)
         VisitHelper.log("Begin of transform")
         invocation.inputs.forEach { input ->
 
@@ -55,6 +58,7 @@ class LifecycleTransform(private val project: Project) : Transform() {
 
 
     private fun processJarInput(jarInput: JarInput, outputProvider: TransformOutputProvider) {
+        LifecycleAssist.processJarInput(jarInput.file.absolutePath)
         var jarName = jarInput.name
         val md5Name = DigestUtils.md5Hex(jarInput.file.absolutePath)
         if (jarName.endsWith(".jar")) {
@@ -73,8 +77,7 @@ class LifecycleTransform(private val project: Project) : Transform() {
         dirInput: DirectoryInput,
         outputProvider: TransformOutputProvider
     ) {
-        val android = project.extensions.getByType(AppExtension::class.java)
-        LifecycleAssist.processInput(dirInput.file.absolutePath, android)
+        LifecycleAssist.processDirInput(dirInput.file.absolutePath)
 
         val dest = outputProvider.getContentLocation(
             dirInput.name,

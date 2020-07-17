@@ -12,29 +12,39 @@ import java.io.File
 object LifecycleAssist {
     private val classPool = ClassPool.getDefault()
 
-    fun processInput(
-        path: String,
-        android: AppExtension
-    ) {
-        classPool.appendClassPath(path)
-        classPool.appendClassPath(android.bootClasspath[0].toString())
+
+    fun appendAndroidClassPath(android: AppExtension){
+        android.bootClasspath.forEach {
+            VisitHelper.log("android bootClasspath = ${it.absolutePath}")
+        }
+
+        classPool.appendClassPath(android.bootClasspath[0].absolutePath)
+        classPool.appendClassPath("android.os.Bundle")
+    }
+    fun processJarInput(path:String){
+        VisitHelper.log("jar's path = $path")
+//        processDirInput(path)
+    }
+
+    fun processDirInput(path: String) {
+        classPool.insertClassPath(path)
         classPool.importPackage("android.os.Bundle")
-        classPool.importPackage("android.os.Message")
         val dir = File(path)
+        VisitHelper.log("path = $path, isDirectory = ${dir.isDirectory}")
         if (dir.isDirectory) {
             eachFileRecurse(dir) {
                 val name = it.name
                 VisitHelper.log("className = $name")
-                if (VisitHelper.checkClassFile(name) && name.contains("MainActivity.class")) {
+                if (VisitHelper.checkClassFile(name)) {
                     try {
-                        val ctClass = classPool.getCtClass("com.aqrlei.sample.MainActivity")
+                        val ctClass = classPool.getCtClass("com.aqrlei.sample.scheme.SchemeActivity")
                         VisitHelper.log("ctClass = $ctClass")
 
                         if (ctClass.isFrozen) {
                             ctClass.defrost()
                         }
-                        for (method in ctClass.declaredMethods) {
 
+                        for (method in ctClass.declaredMethods) {
                             val tempMethodName = method.name
                             val methodName = tempMethodName.substring(
                                 tempMethodName.lastIndexOf('.') + 1,
@@ -69,7 +79,6 @@ object LifecycleAssist {
         val insertBefore = """android.util.Log.i("LifecyclePlugin", "<----- onDestroy ----->");"""
         ctMethod.insertBefore(insertBefore)
     }
-
 
     private fun eachFileRecurse(self: File, callback: (File) -> Unit) {
         val files = self.listFiles()
