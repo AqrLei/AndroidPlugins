@@ -13,7 +13,7 @@ object WebpHelper {
         var convertPath: String? = null
         if (ImageHelper.isImage(imgFile)) {
             val webpFile = File("${imgFile.path.substring(0, imgFile.path.lastIndexOf("."))}.webp")
-            Tools.cmd("cwebp", "${imgFile.path} -o ${webpFile.path}")
+            Tools.cmd("cwebp", "${imgFile.path} -o ${webpFile.path} -lossless")
             if (webpFile.length() < imgFile.length()) {
                 LogHelper.log(TAG, imgFile.path, imgFile.length(), webpFile.length())
                 if (imgFile.exists()) {

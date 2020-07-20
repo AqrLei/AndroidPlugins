@@ -82,7 +82,7 @@ class ImageConvertPlugin : Plugin<Project> {
     private fun executeImageConvert(variant: BaseVariantImpl, project: Project) {
         checkTools(project)
 
-        val mergeResourcesTask = variant.mergeResourcesProvider.get()
+        val preBuildTask = variant.preBuildProvider.get()
 
         val imageConvertTask = project.task("ImageConvert${variant.name.capitalize()}")
         imageConvertTask.doLast {
@@ -131,12 +131,12 @@ class ImageConvertPlugin : Plugin<Project> {
         }
 
         (project.tasks.findByName(chmodTask.name) as Task).dependsOn(
-            mergeResourcesTask.taskDependencies.getDependencies(mergeResourcesTask)
+            preBuildTask.taskDependencies.getDependencies(preBuildTask)
         )
         (project.tasks.findByName(imageConvertTask.name) as Task).dependsOn(
             project.tasks.findByName(chmodTask.name) as Task
         )
-        mergeResourcesTask.dependsOn(project.tasks.findByName(imageConvertTask.name))
+        preBuildTask.dependsOn(project.tasks.findByName(imageConvertTask.name))
     }
 
     private fun initInfoFile(project: Project) {
