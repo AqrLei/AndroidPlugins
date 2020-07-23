@@ -10,7 +10,7 @@ object PublishConfig {
 
 object PluginsVersion {
     const val imageConvert = "1.0.0-beta03"
-    const val component = "1.0.0-beta01"
+    const val component = "1.0.0-beta02"
     const val depDeduplicate = "1.0.0-alpha23"
     const val lifecycle = "1.0.0-alpha15"
 }

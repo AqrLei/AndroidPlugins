@@ -80,21 +80,9 @@ class ComponentPlugin : Plugin<Project> {
                         manifest.srcFile(debugManifest)
                     }
 
-                    val debugAsset = "${config.debugDir}assets"
-                    if (project.file(debugAsset).exists()) {
-                        assets.srcDirs("src/main/assets", "${config.debugDir}assets")
-                    }
-
-                    val debugJava = "${config.debugDir}java"
-                    if (project.file(debugJava).exists()) {
-                        java.srcDirs("src/main/java", "${config.debugDir}java")
-                    }
-
-                    val debugRes = "${config.debugDir}res"
-                    if (project.file(debugRes).exists()) {
-                        res.srcDirs("src/main/res", "${config.debugDir}res")
-                    }
-
+                    assets.srcDirs("src/main/assets", "${config.debugDir}assets")
+                    java.srcDirs("src/main/java", "${config.debugDir}java")
+                    res.srcDirs("src/main/res", "${config.debugDir}res")
                 }
             }
         } else {
